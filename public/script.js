@@ -1,10 +1,4 @@
 
-window.onerror = function(message, source, lineno, colno, error) {
-  alert("⚠️ JS Error: " + message + " at " + lineno + ":" + colno);
-  console.error("⚠️ JavaScript Error", { message, source, lineno, colno, error });
-};
-console.log("✅ script.js loaded");
-
 let selected = {};
 
 const stepOrder = {
@@ -34,32 +28,21 @@ function renderButtons(stepKey, values, key, nextStep) {
     }
   });
 
-  // Clear old buttons
   section.querySelectorAll("button").forEach(btn => btn.remove());
-
-  // Use or create a wrapper div for buttons
-  let btnWrapper = section.querySelector(".btn-wrapper");
-  if (!btnWrapper) {
-    btnWrapper = document.createElement("div");
-    btnWrapper.className = "btn-wrapper";
-    section.appendChild(btnWrapper);
-  }
-  btnWrapper.innerHTML = "";
 
   values.forEach(val => {
     const btn = document.createElement("button");
     btn.innerText = val;
     btn.onclick = () => {
       selected[key] = val;
-      btnWrapper.querySelectorAll("button").forEach(b => b.classList.remove("selected"));
+      Array.from(section.querySelectorAll("button")).forEach(b => b.classList.remove("selected"));
       btn.classList.add("selected");
       if (nextStep) nextStep();
     };
-    btnWrapper.appendChild(btn);
+    section.appendChild(btn);
   });
 
   section.classList.remove("hidden");
-  hideSubmitButton();
 }
 
 function loadStaticOptions() {
@@ -109,7 +92,9 @@ function loadComponents() {
         if (selected.reportType === "Report Damage") {
           loadDamages(data.damageTypes);
         } else {
-          showCountAndSubmit();
+          document.getElementById("count-input").value = 1;
+          document.getElementById("step-count").classList.remove("hidden");
+          document.getElementById("submit-btn").classList.remove("hidden");
         }
       });
     });
@@ -117,32 +102,78 @@ function loadComponents() {
 
 function loadDamages(damageOptions = []) {
   damageOptions = damageOptions && damageOptions.length ? [...new Set(damageOptions)] : ["Other"];
-  renderButtons("damageType", damageOptions, "damageType", showCountAndSubmit);
+  renderButtons("damageType", damageOptions, "damageType", () => {
+    document.getElementById("count-input").value = 1;
+    document.getElementById("step-count").classList.remove("hidden");
+    document.getElementById("submit-btn").classList.remove("hidden");
+  });
 }
 
-function showCountAndSubmit() {
-  document.getElementById("count-input").value = 1;
-  document.getElementById("step-count").classList.remove("hidden");
-
-  const submitBtn = document.getElementById("submit-btn");
-  if (submitBtn.classList.contains("hidden")) {
-    submitBtn.classList.remove("hidden");
+function showPopupMessage(message, duration = 3000) {
+  const existingPopup = document.getElementById("popup-message");
+  if (existingPopup) {
+    existingPopup.remove();
   }
+
+  const popup = document.createElement("div");
+  popup.id = "popup-message";
+  popup.textContent = message;
+
+  popup.style.position = "fixed";
+  popup.style.bottom = "20px";
+  popup.style.left = "50%";
+  popup.style.transform = "translateX(-50%)";
+  popup.style.backgroundColor = "var(--header-dark)";
+  popup.style.color = "white";
+  popup.style.padding = "12px 24px";
+  popup.style.borderRadius = "8px";
+  popup.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.15)";
+  popup.style.zIndex = "1000";
+  popup.style.fontFamily = "'Cascadia Code', monospace";
+  popup.style.fontSize = "14px";
+  popup.style.opacity = "0";
+  popup.style.transition = "opacity 0.3s ease";
+
+  document.body.appendChild(popup);
+
+  setTimeout(() => {
+    popup.style.opacity = "1";
+  }, 10);
+
+  setTimeout(() => {
+    popup.style.opacity = "0";
+    setTimeout(() => {
+      popup.remove();
+    }, 300);
+  }, duration);
 }
 
-function hideSubmitButton() {
-  const btn = document.getElementById("submit-btn");
-  if (!btn.classList.contains("hidden")) {
-    btn.classList.add("hidden");
+function validateFormFields() {
+  const requiredFields = ["reportType", "venue", "reporter", "kit", "component"];
+  if (selected.reportType === "Report Damage") {
+    requiredFields.push("damageType");
   }
+
+  const missingFields = requiredFields.filter(field => !selected[field]);
+
+  if (missingFields.length > 0) {
+    showPopupMessage("Oo! You still have a few fields to fill out.");
+    return false;
+  }
+
+  const count = parseInt(document.getElementById("count-input").value || "0");
+  if (!count || count < 1) {
+    showPopupMessage("Oo! You still have a few fields to fill out.");
+    return false;
+  }
+
+  return true;
 }
 
 document.getElementById("submit-btn").onclick = () => {
+  if (!validateFormFields()) return;
+
   selected.count = parseInt(document.getElementById("count-input").value || "1");
-  if (!selected.count || selected.count < 1) {
-    alert("Please enter a valid count greater than 0.");
-    return;
-  }
 
   fetch("/submit", {
     method: "POST",
@@ -151,7 +182,7 @@ document.getElementById("submit-btn").onclick = () => {
   })
     .then(res => res.json())
     .then(data => {
-      alert("✅ Submitted successfully!");
+      showPopupMessage("✅ Submitted successfully!");
       console.log("Response:", data);
 
       const submitBtn = document.getElementById("submit-btn");
@@ -169,9 +200,15 @@ document.getElementById("submit-btn").onclick = () => {
       loadStaticOptions();
     })
     .catch(err => {
-      alert("❌ Submission failed");
+      showPopupMessage("❌ Submission failed");
       console.error(err);
     });
 };
 
+window.onerror = function(message, source, lineno, colno, error) {
+  alert("⚠️ JS Error: " + message + " at " + lineno + ":" + colno);
+  console.error("⚠️ JavaScript Error", { message, source, lineno, colno, error });
+};
+
+console.log("✅ script.js loaded");
 window.onload = loadStaticOptions;
