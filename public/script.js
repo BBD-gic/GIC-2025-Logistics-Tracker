@@ -1,3 +1,10 @@
+console.log("✅ script.js is loaded");
+
+window.onload = () => {
+  console.log("✅ Window loaded, loading form...");
+  loadStaticOptions(); // or your main init function
+};
+
 let selected = {};
 
 const stepOrder = {
