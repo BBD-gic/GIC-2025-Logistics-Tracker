@@ -1,9 +1,9 @@
-console.log("✅ script.js is loaded");
 
-window.onload = () => {
-  console.log("✅ Window loaded, loading form...");
-  loadStaticOptions(); // or your main init function
+window.onerror = function(message, source, lineno, colno, error) {
+  alert("⚠️ JS Error: " + message + " at " + lineno + ":" + colno);
+  console.error("⚠️ JavaScript Error", { message, source, lineno, colno, error });
 };
+console.log("✅ script.js loaded");
 
 let selected = {};
 
@@ -63,7 +63,7 @@ function renderButtons(stepKey, values, key, nextStep) {
 }
 
 function loadStaticOptions() {
-  fetch("http://localhost:3000/static-options")
+  fetch("/static-options")
     .then(res => res.json())
     .then(data => {
       renderButtons("reportType", data.reportTypes, "reportType", loadVenues);
@@ -71,7 +71,7 @@ function loadStaticOptions() {
 }
 
 function loadVenues() {
-  fetch("http://localhost:3000/form-options")
+  fetch("/form-options")
     .then(res => res.json())
     .then(data => {
       renderButtons("venue", data.venues, "venue", loadReporters);
@@ -82,7 +82,7 @@ function loadReporters() {
   if (!selected.venue) return alert("Please select a venue first.");
   document.getElementById("step-reporter").classList.add("hidden");
 
-  fetch("http://localhost:3000/static-options")
+  fetch("/static-options")
     .then(res => res.json())
     .then(data => {
       const venue = selected.venue?.trim();
@@ -93,7 +93,7 @@ function loadReporters() {
 
 function loadKits() {
   if (!selected.venue) return alert("Please select a venue first.");
-  fetch(`http://localhost:3000/form-options?venue=${encodeURIComponent(selected.venue)}`)
+  fetch(`/form-options?venue=${encodeURIComponent(selected.venue)}`)
     .then(res => res.json())
     .then(data => {
       renderButtons("kit", data.kits, "kit", loadComponents);
@@ -102,16 +102,14 @@ function loadKits() {
 
 function loadComponents() {
   if (!selected.venue || !selected.kit) return alert("Please select venue and kit first.");
-  fetch(`http://localhost:3000/form-options?venue=${encodeURIComponent(selected.venue)}&kit=${encodeURIComponent(selected.kit)}`)
+  fetch(`/form-options?venue=${encodeURIComponent(selected.venue)}&kit=${encodeURIComponent(selected.kit)}`)
     .then(res => res.json())
     .then(data => {
       renderButtons("component", data.components, "component", () => {
         if (selected.reportType === "Report Damage") {
           loadDamages(data.damageTypes);
         } else {
-          document.getElementById("count-input").value = 1;
-          document.getElementById("step-count").classList.remove("hidden");
-          document.getElementById("submit-btn").classList.remove("hidden");
+          showCountAndSubmit();
         }
       });
     });
@@ -119,112 +117,48 @@ function loadComponents() {
 
 function loadDamages(damageOptions = []) {
   damageOptions = damageOptions && damageOptions.length ? [...new Set(damageOptions)] : ["Other"];
-  renderButtons("damageType", damageOptions, "damageType", () => {
-    document.getElementById("count-input").value = 1;
-    document.getElementById("step-count").classList.remove("hidden");
-    document.getElementById("submit-btn").classList.remove("hidden");
-  });
+  renderButtons("damageType", damageOptions, "damageType", showCountAndSubmit);
 }
 
-// Validate if all required fields are filled
-// Create popup element
-function showPopupMessage(message, duration = 3000) {
-  // Remove any existing popup
-  const existingPopup = document.getElementById("popup-message");
-  if (existingPopup) {
-    existingPopup.remove();
+function showCountAndSubmit() {
+  document.getElementById("count-input").value = 1;
+  document.getElementById("step-count").classList.remove("hidden");
+
+  const submitBtn = document.getElementById("submit-btn");
+  if (submitBtn.classList.contains("hidden")) {
+    submitBtn.classList.remove("hidden");
   }
-  
-  // Create new popup
-  const popup = document.createElement("div");
-  popup.id = "popup-message";
-  popup.textContent = message;
-  
-  // Style the popup
-  popup.style.position = "fixed";
-  popup.style.bottom = "20px";
-  popup.style.left = "50%";
-  popup.style.transform = "translateX(-50%)";
-  popup.style.backgroundColor = "var(--header-dark)";
-  popup.style.color = "white";
-  popup.style.padding = "12px 24px";
-  popup.style.borderRadius = "8px";
-  popup.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.15)";
-  popup.style.zIndex = "1000";
-  popup.style.fontFamily = "'Cascadia Code', monospace";
-  popup.style.fontSize = "14px";
-  popup.style.opacity = "0";
-  popup.style.transition = "opacity 0.3s ease";
-  
-  // Add to document
-  document.body.appendChild(popup);
-  
-  // Fade in
-  setTimeout(() => {
-    popup.style.opacity = "1";
-  }, 10);
-  
-  // Auto remove after duration
-  setTimeout(() => {
-    popup.style.opacity = "0";
-    setTimeout(() => {
-      popup.remove();
-    }, 300);
-  }, duration);
 }
 
-function validateFormFields() {
-  const requiredFields = ["reportType", "venue", "reporter", "kit", "component"];
-  
-  // Add damageType to required fields only if reportType is "Report Damage"
-  if (selected.reportType === "Report Damage") {
-    requiredFields.push("damageType");
+function hideSubmitButton() {
+  const btn = document.getElementById("submit-btn");
+  if (!btn.classList.contains("hidden")) {
+    btn.classList.add("hidden");
   }
-  
-  // Check if all required fields have values
-  const missingFields = requiredFields.filter(field => !selected[field]);
-  
-  if (missingFields.length > 0) {
-    showPopupMessage("Oo! You still have a few fields to fill out.");
-    return false;
-  }
-  
-  // Also validate count
-  const count = parseInt(document.getElementById("count-input").value || "0");
-  if (!count || count < 1) {
-    showPopupMessage("Oo! You still have a few fields to fill out.");
-    return false;
-  }
-  
-  return true;
 }
 
-// ✅ SUBMIT + RESET
 document.getElementById("submit-btn").onclick = () => {
-  // First validate all required fields
-  if (!validateFormFields()) {
+  selected.count = parseInt(document.getElementById("count-input").value || "1");
+  if (!selected.count || selected.count < 1) {
+    alert("Please enter a valid count greater than 0.");
     return;
   }
 
-  selected.count = parseInt(document.getElementById("count-input").value || "1");
-
-  fetch("http://localhost:3000/submit", {
+  fetch("/submit", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(selected)
   })
     .then(res => res.json())
     .then(data => {
-      showPopupMessage("✅ Submitted successfully!");
+      alert("✅ Submitted successfully!");
       console.log("Response:", data);
 
-      // 🛠 Fix: Reset style before hiding the button
       const submitBtn = document.getElementById("submit-btn");
       submitBtn.style.backgroundColor = "var(--selected)";
       submitBtn.style.color = "white";
       submitBtn.classList.add("hidden");
 
-      // 🔁 Clear form and selections
       selected = {};
       document.querySelectorAll("main section").forEach((sec) => {
         sec.classList.add("hidden");
@@ -232,11 +166,10 @@ document.getElementById("submit-btn").onclick = () => {
       });
       document.getElementById("count-input").value = 1;
 
-      // 🔄 Load initial options again
       loadStaticOptions();
     })
     .catch(err => {
-      showPopupMessage("❌ Submission failed");
+      alert("❌ Submission failed");
       console.error(err);
     });
 };
