@@ -1,13 +1,21 @@
 const express = require("express");
 const axios = require("axios");
 const cors = require("cors");
+const path = require("path");
 require("dotenv").config();
 const Airtable = require("airtable");
 
 const app = express();
 app.use(cors());
-app.options("*", cors());
 app.use(express.json());
+
+// Serve static files from the 'public' folder
+app.use(express.static(path.join(__dirname, "public")));
+
+// Route root URL to index.html in public
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
 const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
@@ -198,42 +206,4 @@ app.listen(process.env.PORT || 3000, async () => {
   await cacheRecordIds("Program Mgmt Team", "Name", "Reporter");
 });
 
-app.post("/submit", (req, res) => {
-  const data = req.body;
-
-  // ✅ Log to terminal
-  console.log("🟢 Received submission:", data);
-
-  // proceed with Airtable write...
-  base('Logs').create([
-    {
-      fields: {
-        "Report Type": data.reportType,
-        "Venue": data.venue,
-        "Reporter": data.reporter,
-        "Kit": data.kit,
-        "Component": data.component,
-        "Damage Type": data.damageType || "",
-        "Count": data.count
-      }
-    }
-  ], function(err, records) {
-    if (err) {
-      console.error("❌ Airtable error:", err);
-      return res.status(500).json({ success: false, error: err });
-    }
-    console.log("✅ Record saved to Airtable:", records[0]?.id);
-    res.json({ success: true });
-  });
-});
-
-const path = require("path");
-
-// Serve static files from the 'public' folder
-app.use(express.static(path.join(__dirname, "public")));
-
-// Route root URL to index.html in public
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
 
