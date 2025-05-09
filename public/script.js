@@ -27,21 +27,32 @@ function renderButtons(stepKey, values, key, nextStep) {
     }
   });
 
+  // Clear old buttons
   section.querySelectorAll("button").forEach(btn => btn.remove());
+
+  // Use or create a wrapper div for buttons
+  let btnWrapper = section.querySelector(".btn-wrapper");
+  if (!btnWrapper) {
+    btnWrapper = document.createElement("div");
+    btnWrapper.className = "btn-wrapper";
+    section.appendChild(btnWrapper);
+  }
+  btnWrapper.innerHTML = "";
 
   values.forEach(val => {
     const btn = document.createElement("button");
     btn.innerText = val;
     btn.onclick = () => {
       selected[key] = val;
-      Array.from(section.querySelectorAll("button")).forEach(b => b.classList.remove("selected"));
+      btnWrapper.querySelectorAll("button").forEach(b => b.classList.remove("selected"));
       btn.classList.add("selected");
       if (nextStep) nextStep();
     };
-    section.appendChild(btn);
+    btnWrapper.appendChild(btn);
   });
 
   section.classList.remove("hidden");
+  hideSubmitButton();
 }
 
 function loadStaticOptions() {
