@@ -136,23 +136,29 @@ button.selected {
 
 /* Responsive */
 @media (max-width: 480px) {
-  header {
-    flex-direction: column;
-    text-align: center;
-    padding: 14px;
+  button {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 10px 0;
   }
 
-  header img {
-    margin-bottom: 6px;
+  main {
+    padding: 24px 16px 100px;
   }
 
   h2 {
     font-size: 14px;
+    margin-top: 32px;
+    margin-bottom: 8px;
   }
 
-  button {
+  section {
+    margin-bottom: 32px;
+  }
+
+  #submit-btn {
     width: 100%;
-    margin: 10px 0;
-    font-size: 13px;
   }
 }
+
