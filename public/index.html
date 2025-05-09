@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GIC Logistics Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <img src="../images/bbd-logo.png" alt="logo" />
+    <h1>GIC 2025 Logistics Tracker</h1>
+  </header>
+
+  <main>
+    <section id="step-reportType"><h2><span class="step-number"></span> Select Report Type</h2></section>
+    <section id="step-venue"><h2><span class="step-number"></span> Select Venue</h2></section>
+    <section id="step-reporter" class="hidden"><h2><span class="step-number"></span> Who is reporting?</h2></section>
+    <section id="step-kit"><h2><span class="step-number"></span> Select Kit</h2></section>
+    <section id="step-component"><h2><span class="step-number"></span> Select Component</h2></section>
+    <section id="step-damageType"><h2><span class="step-number"></span> Select Damage Type (for Report Damage only)</h2></section>
+    <section id="step-count" class="hidden">
+      <h2><span class="step-number"></span> Enter the count:</h2>
+      <input type="number" id="count-input" min="1" value="1" />
+    </section>
+    <button id="submit-btn" class="hidden">Submit</button>
+  </main>
+
+  <script>
+    // Dynamic step numbering
+    function updateStepNumbers() {
+      let count = 1;
+      document.querySelectorAll("main section").forEach(sec => {
+        if (!sec.classList.contains("hidden")) {
+          const numSpan = sec.querySelector(".step-number");
+          if (numSpan) numSpan.innerText = count++ + ". ";
+        }
+      });
+    }
+
+    const observer = new MutationObserver(updateStepNumbers);
+    observer.observe(document.querySelector("main"), {
+      childList: false,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    window.onload = updateStepNumbers;
+  </script>
+
+  <script src="script.js"></script>
+</body>
+</html>

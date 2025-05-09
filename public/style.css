@@ -1,0 +1,158 @@
+:root {
+  --bg1: #e8d7b9;
+  --bg2: #83aebe;
+  --bg3: #6594a3;
+  --bg4: #37657e;
+  --hover: #6594a3;
+  --selected: #001f3f;
+  --header-dark: #001f3f;
+}
+
+body {
+  font-family: 'Cascadia Code', monospace;
+  background: linear-gradient(to bottom,
+    var(--bg1) 0%,
+    var(--bg1) 45%,
+    var(--bg2) 65%,
+    var(--bg3) 85%,
+    var(--bg4) 100%);
+  background-attachment: fixed;
+  margin: 0;
+  padding: 0;
+  color: #1f2d3d;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+header {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  max-width: 600px;
+  background: var(--header-dark);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px 24px;
+  font-family: 'Cascadia Code', monospace;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+header img {
+  width: 60px;
+  height: 60px;
+}
+
+main {
+  width: 100%;
+  max-width: 600px;
+  padding: 56px 20px 100px;
+  box-sizing: border-box;
+}
+
+h2 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  margin-top: 48px;
+  color: #111111;
+}
+
+section {
+  margin-bottom: 56px;
+  transition: opacity 0.4s ease;
+}
+
+section.hidden {
+  display: none;
+  opacity: 0;
+}
+
+button {
+  margin: 10px 10px 0 0;
+  padding: 14px 20px;
+  border-radius: 12px;
+  border: none;
+  background-color: white;
+  color: #1a1a1a;
+  cursor: pointer;
+  font-weight: 400;
+  font-size: 14px;
+  font-family: 'Cascadia Code', monospace;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  transition: background-color 0.3s ease, transform 0.2s;
+  min-width: 120px;
+}
+
+button:hover:not(.selected) {
+  background-color: var(--hover);
+  transform: translateY(-1px);
+  color: white;
+}
+
+button.selected {
+  background-color: var(--selected);
+  color: white;
+  font-weight: 600;
+}
+
+#count-input {
+  width: 100%;
+  padding: 12px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-family: 'Cascadia Code', monospace;
+  margin-top: 8px;
+  color: #1a1a1a;
+  background-color: white;
+}
+
+#submit-btn {
+  margin-top: 30px;
+  width: 100%;
+  background-color: var(--selected);
+  color: white;
+  font-size: 15px;
+  padding: 14px;
+  border-radius: 12px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s;
+  font-family: 'Cascadia Code', monospace;
+}
+
+#submit-btn:hover {
+  background-color: var(--bg1); /* pale sand */
+  color: #1a1a1a;
+  transform: translateY(-1px);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  header {
+    flex-direction: column;
+    text-align: center;
+    padding: 14px;
+  }
+
+  header img {
+    margin-bottom: 6px;
+  }
+
+  h2 {
+    font-size: 14px;
+  }
+
+  button {
+    width: 100%;
+    margin: 10px 0;
+    font-size: 13px;
+  }
+}
