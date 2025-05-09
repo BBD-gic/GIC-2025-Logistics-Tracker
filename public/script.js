@@ -206,7 +206,6 @@ document.getElementById("submit-btn").onclick = () => {
 };
 
 window.onerror = function(message, source, lineno, colno, error) {
-  alert("⚠️ JS Error: " + message + " at " + lineno + ":" + colno);
   console.error("⚠️ JavaScript Error", { message, source, lineno, colno, error });
 };
 
