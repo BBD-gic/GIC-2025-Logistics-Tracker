@@ -227,3 +227,13 @@ app.post("/submit", (req, res) => {
   });
 });
 
+const path = require("path");
+
+// Serve static files from the 'public' folder
+app.use(express.static(path.join(__dirname, "public")));
+
+// Route root URL to index.html in public
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
