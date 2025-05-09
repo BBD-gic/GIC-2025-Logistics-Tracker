@@ -9,21 +9,21 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve static files from the 'public' folder
+// ✅ Serve static frontend from public/
 app.use(express.static(path.join(__dirname, "public")));
 
-// Route root URL to index.html in public
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
+// ✅ Airtable setup
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
 const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
 const AIRTABLE_URL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Stock%20In`;
 const headers = { Authorization: `Bearer ${AIRTABLE_API_KEY}` };
-
 const airtableBase = new Airtable({ apiKey: AIRTABLE_API_KEY }).base(AIRTABLE_BASE_ID);
 
+// ✅ Cache
 let allRecords = [];
 const recordIdCache = {
   Venue: {},
@@ -107,6 +107,7 @@ async function cacheRecordIds(tableName, labelField = "Name", cacheKey = tableNa
   }
 }
 
+// 🔄 Routes
 app.get("/form-options", async (req, res) => {
   try {
     if (allRecords.length === 0) await fetchAllRecords();
@@ -197,6 +198,7 @@ app.post("/submit", async (req, res) => {
   }
 });
 
+// ✅ Start
 app.listen(process.env.PORT || 3000, async () => {
   console.log("🚀 Server running...");
   await fetchAllRecords();
@@ -205,5 +207,3 @@ app.listen(process.env.PORT || 3000, async () => {
   await cacheRecordIds("Stock In", "Component Name", "Component");
   await cacheRecordIds("Program Mgmt Team", "Name", "Reporter");
 });
-
-
