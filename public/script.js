@@ -30,6 +30,21 @@ function showCountAndSubmit() {
   }, 100);
 }
 
+function checkAndShowSubmit() {
+  console.log("Checking if submit should show, selected:", selected);
+  const required = ["reportType", "venue", "reporter", "kit", "component"];
+  if (selected.reportType === "Report Damage") {
+    required.push("damageType");
+  }
+  
+  const allFilled = required.every(k => selected[k]);
+  console.log("All required fields filled?", allFilled, "required:", required);
+  
+  if (allFilled) {
+    showCountAndSubmit();
+  }
+}
+
 function renderButtons(stepKey, values, key, nextStep) {
   const section = document.getElementById("step-" + stepKey);
   const currentStepNum = stepOrder[stepKey];
@@ -64,6 +79,7 @@ function renderButtons(stepKey, values, key, nextStep) {
         nextStep();
       }
       
+      // Always check if final step reached
       checkAndShowSubmit();
     };
 
@@ -80,10 +96,15 @@ function renderButtons(stepKey, values, key, nextStep) {
 }
 
 function loadStaticOptions() {
+  console.log("Loading initial options, selected:", selected);
   fetch("/static-options")
     .then(res => res.json())
     .then(data => {
       renderButtons("reportType", data.reportTypes, "reportType", loadVenues);
+    })
+    .catch(error => {
+      console.error("Failed to load static options:", error);
+      showPopupMessage("❌ Failed to load options. Please refresh the page.");
     });
 }
 
@@ -92,6 +113,10 @@ function loadVenues() {
     .then(res => res.json())
     .then(data => {
       renderButtons("venue", data.venues, "venue", loadReporters);
+    })
+    .catch(error => {
+      console.error("Failed to load venues:", error);
+      showPopupMessage("❌ Failed to load venues. Please try again.");
     });
 }
 
@@ -105,6 +130,10 @@ function loadReporters() {
       const venue = selected.venue?.trim();
       const names = data.reporters?.[venue] || [];
       renderButtons("reporter", names, "reporter", loadKits);
+    })
+    .catch(error => {
+      console.error("Failed to load reporters:", error);
+      showPopupMessage("❌ Failed to load reporters. Please try again.");
     });
 }
 
@@ -120,6 +149,10 @@ function loadKits() {
       }
 
       renderButtons("kit", kits, "kit", loadComponents);
+    })
+    .catch(error => {
+      console.error("Failed to load kits:", error);
+      showPopupMessage("❌ Failed to load kits. Please try again.");
     });
 }
 
@@ -136,24 +169,16 @@ function loadComponents() {
           checkAndShowSubmit();
         }
       });
+    })
+    .catch(error => {
+      console.error("Failed to load components:", error);
+      showPopupMessage("❌ Failed to load components. Please try again.");
     });
 }
 
 function loadDamages(damageOptions = []) {
   const options = damageOptions && damageOptions.length ? [...new Set(damageOptions)] : ["Other"];
   renderButtons("damageType", options, "damageType", checkAndShowSubmit);
-}
-
-// Added this function to centralize submit button visibility logic
-function checkAndShowSubmit() {
-  const required = ["reportType", "venue", "reporter", "kit", "component"];
-  if (selected.reportType === "Report Damage") {
-    required.push("damageType");
-  }
-  
-  if (required.every(k => selected[k])) {
-    showCountAndSubmit();
-  }
 }
 
 function validateFormFields() {
@@ -166,7 +191,7 @@ function validateFormFields() {
   const count = parseInt(document.getElementById("count-input").value || "0");
 
   if (missing.length > 0 || count < 1) {
-    showPopupMessage("Oo! You still have a few fields to fill out.");
+    showPopupMessage("Oops! You still have a few fields to fill out.");
     return false;
   }
 
@@ -221,7 +246,6 @@ document.getElementById("submit-btn").onclick = () => {
       console.log("Response:", data);
 
       // Properly reset the selected object by creating a new empty object
-      // This ensures we're not just clearing properties but replacing the reference
       window.selected = selected = {};
       console.log("Reset selected object:", selected); // Debug log
 
