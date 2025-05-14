@@ -43,11 +43,13 @@ function renderButtons(stepKey, values, key, nextStep) {
   });
 
   section.classList.remove("hidden");
-
-  section.classList.remove("hidden");
+  
   setTimeout(() => {
-    section.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, 100);
+    const yOffset = -80; // adjust based on header height
+    const y = section.getBoundingClientRect().top + window.pageYOffset + yOffset;
+    window.scrollTo({ top: y, behavior: "smooth" });
+  }, 100); // small delay to ensure DOM updates
+
 }
 
 function loadStaticOptions() {
