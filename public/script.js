@@ -10,6 +10,14 @@ const stepOrder = {
   count: 7
 };
 
+function hideSubmit() {
+  const countSection = document.getElementById("step-count");
+  const submitBtn = document.getElementById("submit-btn");
+
+  if (countSection) countSection.classList.add("hidden");
+  if (submitBtn) submitBtn.classList.add("hidden");
+}
+
 function renderButtons(stepKey, values, key, nextStep) {
   const section = document.getElementById("step-" + stepKey);
   const currentStepNum = stepOrder[stepKey];
@@ -27,13 +35,8 @@ function renderButtons(stepKey, values, key, nextStep) {
     }
   });
 
-  // ✅ Always hide count and submit explicitly
-  const countSection = document.getElementById("step-count");
-  const submitButton = document.getElementById("submit-btn");
-  if (countSection) countSection.classList.add("hidden");
-  if (submitButton) submitButton.classList.add("hidden");
+  hideSubmit(); // Always hide count and submit when changing steps
 
-  // Clear previous buttons
   section.querySelectorAll("button").forEach(btn => btn.remove());
 
   values.forEach(val => {
@@ -50,7 +53,6 @@ function renderButtons(stepKey, values, key, nextStep) {
 
   section.classList.remove("hidden");
 
-  // Smooth scroll into view
   setTimeout(() => {
     const yOffset = -80;
     const y = section.getBoundingClientRect().top + window.pageYOffset + yOffset;
@@ -216,6 +218,7 @@ document.getElementById("submit-btn").onclick = () => {
       });
       document.getElementById("count-input").value = 1;
 
+      hideSubmit(); // Ensure it resets
       loadStaticOptions();
     })
     .catch(err => {
