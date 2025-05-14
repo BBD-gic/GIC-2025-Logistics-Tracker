@@ -41,15 +41,14 @@ header {
 }
 
 header img {
-  width: 40px;
-  height: 40px;
+  width: 45px;
+  height: 45px;
   object-fit: contain;
 }
 
 header h1 {
-  font-size: 17px;
+  font-size: 19px;
   font-weight: 600;
-  margin: 0;
   flex: 1;
   text-align: right;
 }
