@@ -50,6 +50,10 @@ function loadStaticOptions() {
     .then(res => res.json())
     .then(data => {
       renderButtons("reportType", data.reportTypes, "reportType", loadVenues);
+    })
+    .finally(() => {
+      // Hide loading screen after static options are rendered
+      document.getElementById("loading-screen").style.display = "none";
     });
 }
 
