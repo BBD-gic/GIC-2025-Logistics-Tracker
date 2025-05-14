@@ -4,7 +4,7 @@ let selected = window.selected;
 
 const stepOrder = {
   reportType: 1,
-  venue: 2, 
+  venue: 2,
   reporter: 3,
   kit: 4,
   component: 5,
@@ -14,6 +14,7 @@ const stepOrder = {
 };
 
 function hideSubmit() {
+  document.getElementById("count-input").value = 1;
   document.getElementById("step-count").classList.add("hidden");
   document.getElementById("step-submit").classList.add("hidden");
 }
@@ -24,22 +25,20 @@ function showCountAndSubmit() {
   document.getElementById("step-submit").classList.remove("hidden");
 
   setTimeout(() => {
-    const yOffset = -80;
+    const yOffset = -100;
     const y = document.getElementById("step-submit").getBoundingClientRect().top + window.pageYOffset + yOffset;
     window.scrollTo({ top: y, behavior: "smooth" });
   }, 100);
 }
 
 function checkAndShowSubmit() {
-  console.log("Checking if submit should show, selected:", selected);
   const required = ["reportType", "venue", "reporter", "kit", "component"];
   if (selected.reportType === "Report Damage") {
     required.push("damageType");
   }
-  
+
   const allFilled = required.every(k => selected[k]);
-  console.log("All required fields filled?", allFilled, "required:", required);
-  
+
   if (allFilled) {
     showCountAndSubmit();
   }
@@ -78,8 +77,7 @@ function renderButtons(stepKey, values, key, nextStep) {
       if (nextStep) {
         nextStep();
       }
-      
-      // Always check if final step reached
+
       checkAndShowSubmit();
     };
 
@@ -89,14 +87,13 @@ function renderButtons(stepKey, values, key, nextStep) {
   section.classList.remove("hidden");
 
   setTimeout(() => {
-    const yOffset = -80;
+    const yOffset = -100;
     const y = section.getBoundingClientRect().top + window.pageYOffset + yOffset;
     window.scrollTo({ top: y, behavior: "smooth" });
   }, 100);
 }
 
 function loadStaticOptions() {
-  console.log("Loading initial options, selected:", selected);
   fetch("/static-options")
     .then(res => res.json())
     .then(data => {
@@ -129,6 +126,10 @@ function loadReporters() {
     .then(data => {
       const venue = selected.venue?.trim();
       const names = data.reporters?.[venue] || [];
+      if (!names.length) {
+        showPopupMessage("❌ No reporters found for this venue.");
+        return;
+      }
       renderButtons("reporter", names, "reporter", loadKits);
     })
     .catch(error => {
@@ -165,7 +166,6 @@ function loadComponents() {
         if (selected.reportType === "Report Damage") {
           loadDamages(data.damageTypes);
         } else {
-          // Important: Check if all required fields are filled, even for non-damage reports
           checkAndShowSubmit();
         }
       });
@@ -235,6 +235,8 @@ document.getElementById("submit-btn").onclick = () => {
 
   selected.count = parseInt(document.getElementById("count-input").value || "1");
 
+  document.getElementById("submit-btn").disabled = true;
+
   fetch("/submit", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -245,11 +247,11 @@ document.getElementById("submit-btn").onclick = () => {
       showPopupMessage("✅ Submitted successfully!");
       console.log("Response:", data);
 
-      // Properly reset the selected object by creating a new empty object
-      window.selected = selected = {};
-      console.log("Reset selected object:", selected); // Debug log
+      // Reset selected object without losing reference
+      Object.keys(selected).forEach(k => delete selected[k]);
+      console.log("Reset selected object:", selected);
 
-      // Hide all sections and clear all buttons
+      // Hide all sections and clear buttons
       document.querySelectorAll("main section").forEach(sec => {
         sec.classList.add("hidden");
         sec.querySelectorAll("button").forEach(b => {
@@ -259,14 +261,15 @@ document.getElementById("submit-btn").onclick = () => {
       });
 
       document.getElementById("count-input").value = 1;
-      hideSubmit(); // Hide submit section
-      
-      // Start over with first step
+      hideSubmit();
       loadStaticOptions();
     })
     .catch(err => {
-      showPopupMessage("❌ Submission failed");
+      showPopupMessage("❌ Submission failed: " + err.message);
       console.error(err);
+    })
+    .finally(() => {
+      document.getElementById("submit-btn").disabled = false;
     });
 };
 
