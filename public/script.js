@@ -7,15 +7,13 @@ const stepOrder = {
   kit: 4,
   component: 5,
   damageType: 6,
-  count: 7
+  count: 7,
+  submit: 8
 };
 
 function hideSubmit() {
-  const countSection = document.getElementById("step-count");
-  const submitBtn = document.getElementById("submit-btn");
-
-  if (countSection) countSection.classList.add("hidden");
-  if (submitBtn) submitBtn.classList.add("hidden");
+  document.getElementById("step-count").classList.add("hidden");
+  document.getElementById("step-submit").classList.add("hidden");
 }
 
 function renderButtons(stepKey, values, key, nextStep) {
@@ -35,7 +33,7 @@ function renderButtons(stepKey, values, key, nextStep) {
     }
   });
 
-  hideSubmit(); // Always hide count and submit when changing steps
+  hideSubmit(); // Always hide count + submit when resetting later steps
 
   section.querySelectorAll("button").forEach(btn => btn.remove());
 
@@ -113,9 +111,7 @@ function loadComponents() {
         if (selected.reportType === "Report Damage") {
           loadDamages(data.damageTypes);
         } else {
-          document.getElementById("count-input").value = 1;
-          document.getElementById("step-count").classList.remove("hidden");
-          document.getElementById("submit-btn").classList.remove("hidden");
+          showCountAndSubmit();
         }
       });
     });
@@ -123,18 +119,18 @@ function loadComponents() {
 
 function loadDamages(damageOptions = []) {
   damageOptions = damageOptions && damageOptions.length ? [...new Set(damageOptions)] : ["Other"];
-  renderButtons("damageType", damageOptions, "damageType", () => {
-    document.getElementById("count-input").value = 1;
-    document.getElementById("step-count").classList.remove("hidden");
-    document.getElementById("submit-btn").classList.remove("hidden");
-  });
+  renderButtons("damageType", damageOptions, "damageType", showCountAndSubmit);
+}
+
+function showCountAndSubmit() {
+  document.getElementById("count-input").value = 1;
+  document.getElementById("step-count").classList.remove("hidden");
+  document.getElementById("step-submit").classList.remove("hidden");
 }
 
 function showPopupMessage(message, duration = 3000) {
   const existingPopup = document.getElementById("popup-message");
-  if (existingPopup) {
-    existingPopup.remove();
-  }
+  if (existingPopup) existingPopup.remove();
 
   const popup = document.createElement("div");
   popup.id = "popup-message";
@@ -157,15 +153,10 @@ function showPopupMessage(message, duration = 3000) {
 
   document.body.appendChild(popup);
 
-  setTimeout(() => {
-    popup.style.opacity = "1";
-  }, 10);
-
+  setTimeout(() => popup.style.opacity = "1", 10);
   setTimeout(() => {
     popup.style.opacity = "0";
-    setTimeout(() => {
-      popup.remove();
-    }, 300);
+    setTimeout(() => popup.remove(), 300);
   }, duration);
 }
 
@@ -206,10 +197,8 @@ document.getElementById("submit-btn").onclick = () => {
       showPopupMessage("✅ Submitted successfully!");
       console.log("Response:", data);
 
-      const submitBtn = document.getElementById("submit-btn");
-      submitBtn.style.backgroundColor = "var(--selected)";
-      submitBtn.style.color = "white";
-      submitBtn.classList.add("hidden");
+      document.getElementById("submit-btn").style.backgroundColor = "var(--selected)";
+      document.getElementById("submit-btn").style.color = "white";
 
       selected = {};
       document.querySelectorAll("main section").forEach((sec) => {
@@ -218,7 +207,7 @@ document.getElementById("submit-btn").onclick = () => {
       });
       document.getElementById("count-input").value = 1;
 
-      hideSubmit(); // Ensure it resets
+      hideSubmit();
       loadStaticOptions();
     })
     .catch(err => {
