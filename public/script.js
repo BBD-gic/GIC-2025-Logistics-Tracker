@@ -1,3 +1,4 @@
+
 let selected = {};
 
 const stepOrder = {
@@ -42,12 +43,13 @@ function renderButtons(stepKey, values, key, nextStep) {
   });
 
   section.classList.remove("hidden");
-
+  
   setTimeout(() => {
-    const yOffset = -80;
+    const yOffset = -80; // adjust based on header height
     const y = section.getBoundingClientRect().top + window.pageYOffset + yOffset;
     window.scrollTo({ top: y, behavior: "smooth" });
-  }, 100);
+  }, 100); // small delay to ensure DOM updates
+
 }
 
 function loadStaticOptions() {
@@ -100,21 +102,12 @@ function loadComponents() {
     .then(res => res.json())
     .then(data => {
       renderButtons("component", data.components, "component", () => {
-        const countSection = document.getElementById("step-count");
-        const submitBtn = document.getElementById("submit-btn");
-
         if (selected.reportType === "Report Damage") {
           loadDamages(data.damageTypes);
         } else {
           document.getElementById("count-input").value = 1;
-          countSection.classList.remove("hidden");
-          submitBtn.classList.remove("hidden");
-
-          setTimeout(() => {
-            const yOffset = -80;
-            const y = countSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
-            window.scrollTo({ top: y, behavior: "smooth" });
-          }, 100);
+          document.getElementById("step-count").classList.remove("hidden");
+          document.getElementById("submit-btn").classList.remove("hidden");
         }
       });
     });
@@ -122,27 +115,18 @@ function loadComponents() {
 
 function loadDamages(damageOptions = []) {
   damageOptions = damageOptions && damageOptions.length ? [...new Set(damageOptions)] : ["Other"];
-
   renderButtons("damageType", damageOptions, "damageType", () => {
     document.getElementById("count-input").value = 1;
-
-    const countSection = document.getElementById("step-count");
-    const submitBtn = document.getElementById("submit-btn");
-
-    countSection.classList.remove("hidden");
-    submitBtn.classList.remove("hidden");
-
-    setTimeout(() => {
-      const yOffset = -80;
-      const y = countSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
-      window.scrollTo({ top: y, behavior: "smooth" });
-    }, 100);
+    document.getElementById("step-count").classList.remove("hidden");
+    document.getElementById("submit-btn").classList.remove("hidden");
   });
 }
 
 function showPopupMessage(message, duration = 3000) {
   const existingPopup = document.getElementById("popup-message");
-  if (existingPopup) existingPopup.remove();
+  if (existingPopup) {
+    existingPopup.remove();
+  }
 
   const popup = document.createElement("div");
   popup.id = "popup-message";
@@ -165,10 +149,15 @@ function showPopupMessage(message, duration = 3000) {
 
   document.body.appendChild(popup);
 
-  setTimeout(() => popup.style.opacity = "1", 10);
+  setTimeout(() => {
+    popup.style.opacity = "1";
+  }, 10);
+
   setTimeout(() => {
     popup.style.opacity = "0";
-    setTimeout(() => popup.remove(), 300);
+    setTimeout(() => {
+      popup.remove();
+    }, 300);
   }, duration);
 }
 
@@ -210,6 +199,8 @@ document.getElementById("submit-btn").onclick = () => {
       console.log("Response:", data);
 
       const submitBtn = document.getElementById("submit-btn");
+      submitBtn.style.backgroundColor = "var(--selected)";
+      submitBtn.style.color = "white";
       submitBtn.classList.add("hidden");
 
       selected = {};
@@ -233,4 +224,5 @@ window.onerror = function(message, source, lineno, colno, error) {
 
 console.log("✅ script.js loaded");
 
-window.onload = loadStaticOptions;
+window.onload = loadStaticOptions();
+
