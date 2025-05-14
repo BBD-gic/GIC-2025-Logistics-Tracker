@@ -27,6 +27,10 @@ function renderButtons(stepKey, values, key, nextStep) {
       if (sec) sec.classList.add("hidden");
     }
   });
+  
+  // 👇 Add this just after the loop to always hide count & submit button
+  document.getElementById("step-count")?.classList.add("hidden");
+  document.getElementById("submit-btn")?.classList.add("hidden");
 
   section.querySelectorAll("button").forEach(btn => btn.remove());
 
