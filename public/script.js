@@ -43,6 +43,11 @@ function renderButtons(stepKey, values, key, nextStep) {
   });
 
   section.classList.remove("hidden");
+
+  section.classList.remove("hidden");
+  setTimeout(() => {
+    section.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, 100);
 }
 
 function loadStaticOptions() {
