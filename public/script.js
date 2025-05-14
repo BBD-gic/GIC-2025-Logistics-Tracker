@@ -58,17 +58,20 @@ function renderButtons(stepKey, values, key, nextStep) {
       Array.from(section.querySelectorAll("button")).forEach(b => b.classList.remove("selected"));
       btn.classList.add("selected");
 
-      const isFinalStep = (() => {
-        if (selected.reportType === "Report Damage") {
-          return stepKey === "damageType";
-        }
-        return stepKey === "component";
-      })();
+      if (nextStep) {
+        nextStep();
+      }
+      
+      // Always check if final step reached
+      const required =
+        selected.reportType === "Report Damage"
+          ? ["reportType", "venue", "reporter", "kit", "component", "damageType"]
+          : ["reportType", "venue", "reporter", "kit", "component"];
+      
+      const isFinalStep = required.every(k => selected[k]);
       
       if (isFinalStep) {
         showCountAndSubmit();
-      } else if (nextStep) {
-        nextStep();
       }
     };
 
