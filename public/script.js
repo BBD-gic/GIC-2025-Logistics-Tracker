@@ -126,7 +126,15 @@ function showCountAndSubmit() {
   document.getElementById("count-input").value = 1;
   document.getElementById("step-count").classList.remove("hidden");
   document.getElementById("step-submit").classList.remove("hidden");
+
+  setTimeout(() => {
+    const submitSection = document.getElementById("step-submit");
+    const yOffset = -80; // adjust if needed based on header
+    const y = submitSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
+    window.scrollTo({ top: y, behavior: "smooth" });
+  }, 100);
 }
+
 
 function showPopupMessage(message, duration = 3000) {
   const existingPopup = document.getElementById("popup-message");
@@ -175,7 +183,7 @@ function validateFormFields() {
 
   const count = parseInt(document.getElementById("count-input").value || "0");
   if (!count || count < 1) {
-    showPopupMessage("Oo! You still have a few fields to fill out.");
+    showPopupMessage("Hold On! You still have a few fields to fill out.");
     return false;
   }
 
