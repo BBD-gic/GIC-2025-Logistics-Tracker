@@ -32,9 +32,9 @@ header {
   background: var(--header-dark);
   color: white;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 10px 20px;
+  justify-content: space-between;
+  padding: 12px 24px; /* Balanced spacing */
   font-family: 'Cascadia Code', monospace;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   z-index: 10;
@@ -44,13 +44,15 @@ header img {
   width: 40px;
   height: 40px;
   object-fit: contain;
+  margin-right: 12px;
 }
 
 header h1 {
-  font-size: 16px;
-  font-weight: 500;
+  font-size: 17px;
+  font-weight: 600;
   margin: 0;
-  white-space: nowrap;
+  flex: 1;
+  text-align: right;
 }
 
 main {
@@ -167,13 +169,12 @@ button.selected {
   }
 
   header {
-    padding: 8px 16px;
+    padding: 10px 16px;
   }
   
   header h1 {
     font-size: 15px;
   }
-
 
 }
 
