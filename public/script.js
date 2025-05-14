@@ -1,4 +1,6 @@
-let selected = {};
+// Define selected in window scope to ensure it's properly reset
+window.selected = {};
+let selected = window.selected;
 
 const stepOrder = {
   reportType: 1,
@@ -226,8 +228,10 @@ document.getElementById("submit-btn").onclick = () => {
       showPopupMessage("✅ Submitted successfully!");
       console.log("Response:", data);
 
-      // Completely reset the form state
-      selected = {}; // Reset selected object
+      // Properly reset the selected object by creating a new empty object
+      // This ensures we're not just clearing properties but replacing the reference
+      window.selected = selected = {};
+      console.log("Reset selected object:", selected); // Debug log
 
       // Hide all sections and clear all buttons
       document.querySelectorAll("main section").forEach(sec => {
