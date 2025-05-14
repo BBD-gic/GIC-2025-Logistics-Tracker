@@ -79,7 +79,13 @@ function loadKits() {
   fetch(`/form-options?venue=${encodeURIComponent(selected.venue)}`)
     .then(res => res.json())
     .then(data => {
-      renderButtons("kit", data.kits, "kit", loadComponents);
+      let kits = data.kits || [];
+
+      if (selected.reportType === "Report Damage" || selected.reportType === "Report Missing") {
+        kits = kits.filter(k => k !== "Everyday Materials" && k !== "Slotties");
+      }
+
+      renderButtons("kit", kits, "kit", loadComponents);
     });
 }
 
