@@ -209,10 +209,15 @@ document.getElementById("submit-btn").onclick = () => {
       document.getElementById("submit-btn").style.color = "white";
 
       selected = {};
+      
       document.querySelectorAll("main section").forEach((sec) => {
         sec.classList.add("hidden");
-        sec.querySelectorAll("button").forEach(b => b.remove());
+        const buttons = sec.querySelectorAll("button");
+        if (buttons.length > 0) {
+          buttons.forEach(b => b.remove());
+        }
       });
+
       document.getElementById("count-input").value = 1;
 
       hideSubmit();
