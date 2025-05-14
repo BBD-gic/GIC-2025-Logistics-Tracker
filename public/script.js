@@ -16,6 +16,18 @@ function hideSubmit() {
   document.getElementById("step-submit").classList.add("hidden");
 }
 
+function showCountAndSubmit() {
+  document.getElementById("count-input").value = 1;
+  document.getElementById("step-count").classList.remove("hidden");
+  document.getElementById("step-submit").classList.remove("hidden");
+
+  setTimeout(() => {
+    const yOffset = -80;
+    const y = document.getElementById("step-submit").getBoundingClientRect().top + window.pageYOffset + yOffset;
+    window.scrollTo({ top: y, behavior: "smooth" });
+  }, 100);
+}
+
 function renderButtons(stepKey, values, key, nextStep) {
   const section = document.getElementById("step-" + stepKey);
   const currentStepNum = stepOrder[stepKey];
@@ -33,7 +45,7 @@ function renderButtons(stepKey, values, key, nextStep) {
     }
   });
 
-  hideSubmit(); // hide count + submit when going back
+  hideSubmit();
 
   section.querySelectorAll("button").forEach(btn => btn.remove());
 
@@ -43,14 +55,14 @@ function renderButtons(stepKey, values, key, nextStep) {
 
     btn.onclick = () => {
       selected[key] = val;
-
       Array.from(section.querySelectorAll("button")).forEach(b => b.classList.remove("selected"));
       btn.classList.add("selected");
 
-      // Manually trigger final step if needed
-      if (stepKey === "component" && selected.reportType !== "Report Damage") {
-        showCountAndSubmit();
-      } else if (stepKey === "damageType") {
+      const isFinalStep =
+        (stepKey === "component" && selected.reportType !== "Report Damage") ||
+        stepKey === "damageType";
+
+      if (isFinalStep) {
         showCountAndSubmit();
       } else if (nextStep) {
         nextStep();
@@ -127,23 +139,25 @@ function loadComponents() {
 }
 
 function loadDamages(damageOptions = []) {
-  damageOptions = damageOptions && damageOptions.length ? [...new Set(damageOptions)] : ["Other"];
-  renderButtons("damageType", damageOptions, "damageType");
+  const options = damageOptions && damageOptions.length ? [...new Set(damageOptions)] : ["Other"];
+  renderButtons("damageType", options, "damageType");
 }
 
-function showCountAndSubmit() {
-  const countSec = document.getElementById("step-count");
-  const submitSec = document.getElementById("step-submit");
+function validateFormFields() {
+  const requiredFields = ["reportType", "venue", "reporter", "kit", "component"];
+  if (selected.reportType === "Report Damage") {
+    requiredFields.push("damageType");
+  }
 
-  document.getElementById("count-input").value = 1;
-  countSec.classList.remove("hidden");
-  submitSec.classList.remove("hidden");
+  const missing = requiredFields.filter(field => !selected[field]);
+  const count = parseInt(document.getElementById("count-input").value || "0");
 
-  setTimeout(() => {
-    const yOffset = -80;
-    const y = submitSec.getBoundingClientRect().top + window.pageYOffset + yOffset;
-    window.scrollTo({ top: y, behavior: "smooth" });
-  }, 100);
+  if (missing.length > 0 || count < 1) {
+    showPopupMessage("Oo! You still have a few fields to fill out.");
+    return false;
+  }
+
+  return true;
 }
 
 function showPopupMessage(message, duration = 3000) {
@@ -178,28 +192,6 @@ function showPopupMessage(message, duration = 3000) {
   }, duration);
 }
 
-function validateFormFields() {
-  const requiredFields = ["reportType", "venue", "reporter", "kit", "component"];
-  if (selected.reportType === "Report Damage") {
-    requiredFields.push("damageType");
-  }
-
-  const missingFields = requiredFields.filter(field => !selected[field]);
-
-  if (missingFields.length > 0) {
-    showPopupMessage("Oo! You still have a few fields to fill out.");
-    return false;
-  }
-
-  const count = parseInt(document.getElementById("count-input").value || "0");
-  if (!count || count < 1) {
-    showPopupMessage("Oo! You still have a few fields to fill out.");
-    return false;
-  }
-
-  return true;
-}
-
 document.getElementById("submit-btn").onclick = () => {
   if (!validateFormFields()) return;
 
@@ -217,10 +209,9 @@ document.getElementById("submit-btn").onclick = () => {
 
       selected = {};
 
-      document.querySelectorAll("main section").forEach((sec) => {
+      document.querySelectorAll("main section").forEach(sec => {
         sec.classList.add("hidden");
-        const buttons = sec.querySelectorAll("button");
-        if (buttons.length) buttons.forEach(b => b.remove());
+        sec.querySelectorAll("button").forEach(b => b.remove());
       });
 
       document.getElementById("count-input").value = 1;
