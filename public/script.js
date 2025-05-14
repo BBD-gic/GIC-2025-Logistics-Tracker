@@ -216,4 +216,9 @@ window.onerror = function(message, source, lineno, colno, error) {
 };
 
 console.log("✅ script.js loaded");
-window.onload = loadStaticOptions;
+
+window.onload = () => {
+  loadStaticOptions();
+  document.getElementById("loading-screen").style.display = "none";
+};
+
