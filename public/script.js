@@ -10,6 +10,27 @@ const stepOrder = {
   count: 7
 };
 
+function isFormComplete() {
+  const requiredFields = ["reportType", "venue", "reporter", "kit", "component"];
+  if (selected.reportType === "Report Damage") {
+    requiredFields.push("damageType");
+  }
+
+  const missingFields = requiredFields.filter(field => !selected[field]);
+  const count = parseInt(document.getElementById("count-input").value || "0");
+
+  const complete = missingFields.length === 0 && count >= 1;
+
+  const submitBtn = document.getElementById("submit-btn");
+  if (complete) {
+    submitBtn.classList.remove("disabled");
+  } else {
+    submitBtn.classList.add("disabled");
+  }
+
+  return complete;
+}
+
 function renderButtons(stepKey, values, key, nextStep) {
   const section = document.getElementById("step-" + stepKey);
   const currentStepNum = stepOrder[stepKey];
@@ -36,13 +57,12 @@ function renderButtons(stepKey, values, key, nextStep) {
       selected[key] = val;
       Array.from(section.querySelectorAll("button")).forEach(b => b.classList.remove("selected"));
       btn.classList.add("selected");
+    
+      isFormComplete(); // ✅ check completeness silently
+    
       if (nextStep) nextStep();
-      if (validateFormFields()) {
-        document.getElementById("submit-btn").classList.remove("disabled");
-      } else {
-        document.getElementById("submit-btn").classList.add("disabled");
-      }
     };
+
     section.appendChild(btn);
   });
 
@@ -179,29 +199,13 @@ function showPopupMessage(message, duration = 3000) {
 }
 
 function validateFormFields() {
-  const requiredFields = ["reportType", "venue", "reporter", "kit", "component"];
-  if (selected.reportType === "Report Damage") {
-    requiredFields.push("damageType");
+  if (!isFormComplete()) {
+    showPopupMessage("Hold on! You still have a few fields to fill out.");
+    return false;
   }
-
-  const missingFields = requiredFields.filter(field => !selected[field]);
-
-  const count = parseInt(document.getElementById("count-input").value || "0");
-  const formComplete = missingFields.length === 0 && count >= 1;
-
-  const submitBtn = document.getElementById("submit-btn");
-  if (formComplete) {
-    submitBtn.classList.remove("disabled");
-  } else {
-    submitBtn.classList.add("disabled");
-  }
-
-  if (!formComplete) {
-    showPopupMessage("Hold On! You still have a few fields to fill out.");
-  }
-
-  return formComplete;
+  return true;
 }
+
 
 document.getElementById("submit-btn").onclick = () => {
   if (!validateFormFields()) return;
