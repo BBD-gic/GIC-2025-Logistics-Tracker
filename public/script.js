@@ -2,7 +2,7 @@ let selected = {};
 
 const stepOrder = {
   reportType: 1,
-  venue: 2,
+  venue: 2, 
   reporter: 3,
   kit: 4,
   component: 5,
@@ -137,6 +137,9 @@ function loadComponents() {
       renderButtons("component", data.components, "component", () => {
         if (selected.reportType === "Report Damage") {
           loadDamages(data.damageTypes);
+        } else {
+          // Important: Check if all required fields are filled, even for non-damage reports
+          checkAndShowSubmit();
         }
       });
     });
@@ -144,7 +147,19 @@ function loadComponents() {
 
 function loadDamages(damageOptions = []) {
   const options = damageOptions && damageOptions.length ? [...new Set(damageOptions)] : ["Other"];
-  renderButtons("damageType", options, "damageType");
+  renderButtons("damageType", options, "damageType", checkAndShowSubmit);
+}
+
+// Added this function to centralize submit button visibility logic
+function checkAndShowSubmit() {
+  const required = ["reportType", "venue", "reporter", "kit", "component"];
+  if (selected.reportType === "Report Damage") {
+    required.push("damageType");
+  }
+  
+  if (required.every(k => selected[k])) {
+    showCountAndSubmit();
+  }
 }
 
 function validateFormFields() {
@@ -211,15 +226,22 @@ document.getElementById("submit-btn").onclick = () => {
       showPopupMessage("✅ Submitted successfully!");
       console.log("Response:", data);
 
-      selected = {};
+      // Completely reset the form state
+      selected = {}; // Reset selected object
 
+      // Hide all sections and clear all buttons
       document.querySelectorAll("main section").forEach(sec => {
         sec.classList.add("hidden");
-        sec.querySelectorAll("button").forEach(b => b.remove());
+        sec.querySelectorAll("button").forEach(b => {
+          b.classList.remove("selected");
+          b.remove();
+        });
       });
 
       document.getElementById("count-input").value = 1;
-      hideSubmit();
+      hideSubmit(); // Hide submit section
+      
+      // Start over with first step
       loadStaticOptions();
     })
     .catch(err => {
