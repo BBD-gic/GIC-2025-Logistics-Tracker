@@ -37,6 +37,11 @@ function renderButtons(stepKey, values, key, nextStep) {
       Array.from(section.querySelectorAll("button")).forEach(b => b.classList.remove("selected"));
       btn.classList.add("selected");
       if (nextStep) nextStep();
+      if (validateFormFields()) {
+        document.getElementById("submit-btn").classList.remove("disabled");
+      } else {
+        document.getElementById("submit-btn").classList.add("disabled");
+      }
     };
     section.appendChild(btn);
   });
@@ -55,6 +60,7 @@ function loadStaticOptions() {
     .then(res => res.json())
     .then(data => {
       renderButtons("reportType", data.reportTypes, "reportType", loadVenues);
+      document.getElementById("submit-btn").classList.add("disabled");
     });
 }
 
@@ -180,18 +186,21 @@ function validateFormFields() {
 
   const missingFields = requiredFields.filter(field => !selected[field]);
 
-  if (missingFields.length > 0) {
-    showPopupMessage("Oo! You still have a few fields to fill out.");
-    return false;
-  }
-
   const count = parseInt(document.getElementById("count-input").value || "0");
-  if (!count || count < 1) {
-    showPopupMessage("Oo! You still have a few fields to fill out.");
-    return false;
+  const formComplete = missingFields.length === 0 && count >= 1;
+
+  const submitBtn = document.getElementById("submit-btn");
+  if (formComplete) {
+    submitBtn.classList.remove("disabled");
+  } else {
+    submitBtn.classList.add("disabled");
   }
 
-  return true;
+  if (!formComplete) {
+    showPopupMessage("Hold On! You still have a few fields to fill out.");
+  }
+
+  return formComplete;
 }
 
 document.getElementById("submit-btn").onclick = () => {
