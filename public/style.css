@@ -32,9 +32,9 @@ header {
   background: var(--header-dark);
   color: white;
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 12px 24px; /* Balanced spacing */
+  align-items: center;
+  padding: 10px 20px;
   font-family: 'Cascadia Code', monospace;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   z-index: 10;
@@ -43,16 +43,15 @@ header {
 header img {
   width: 40px;
   height: 40px;
+  margin-left: 10px;
   object-fit: contain;
-  margin-right: 12px;
 }
 
 header h1 {
-  font-size: 17px;
-  font-weight: 600;
-  margin: 0;
-  flex: 1;
-  text-align: right;
+  font-size: 16px;
+  font-weight: 500;
+  margin-right: 10px;
+  white-space: nowrap;
 }
 
 main {
