@@ -58,10 +58,13 @@ function renderButtons(stepKey, values, key, nextStep) {
       Array.from(section.querySelectorAll("button")).forEach(b => b.classList.remove("selected"));
       btn.classList.add("selected");
 
-      const isFinalStep =
-        (stepKey === "component" && selected.reportType !== "Report Damage") ||
-        stepKey === "damageType";
-
+      const isFinalStep = (() => {
+        if (selected.reportType === "Report Damage") {
+          return stepKey === "damageType";
+        }
+        return stepKey === "component";
+      })();
+      
       if (isFinalStep) {
         showCountAndSubmit();
       } else if (nextStep) {
