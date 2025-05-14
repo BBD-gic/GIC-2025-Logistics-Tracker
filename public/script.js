@@ -10,27 +10,6 @@ const stepOrder = {
   count: 7
 };
 
-function isFormComplete() {
-  const requiredFields = ["reportType", "venue", "reporter", "kit", "component"];
-  if (selected.reportType === "Report Damage") {
-    requiredFields.push("damageType");
-  }
-
-  const missingFields = requiredFields.filter(field => !selected[field]);
-  const count = parseInt(document.getElementById("count-input").value || "0");
-
-  const complete = missingFields.length === 0 && count >= 1;
-
-  const submitBtn = document.getElementById("submit-btn");
-  if (complete) {
-    submitBtn.classList.remove("disabled");
-  } else {
-    submitBtn.classList.add("disabled");
-  }
-
-  return complete;
-}
-
 function renderButtons(stepKey, values, key, nextStep) {
   const section = document.getElementById("step-" + stepKey);
   const currentStepNum = stepOrder[stepKey];
@@ -57,12 +36,8 @@ function renderButtons(stepKey, values, key, nextStep) {
       selected[key] = val;
       Array.from(section.querySelectorAll("button")).forEach(b => b.classList.remove("selected"));
       btn.classList.add("selected");
-    
-      isFormComplete(); // ✅ check completeness silently
-    
       if (nextStep) nextStep();
     };
-
     section.appendChild(btn);
   });
 
@@ -80,7 +55,6 @@ function loadStaticOptions() {
     .then(res => res.json())
     .then(data => {
       renderButtons("reportType", data.reportTypes, "reportType", loadVenues);
-      document.getElementById("submit-btn").classList.add("disabled");
     });
 }
 
@@ -199,21 +173,29 @@ function showPopupMessage(message, duration = 3000) {
 }
 
 function validateFormFields() {
-  if (!isFormComplete()) {
-    showPopupMessage("Hold on! You still have a few fields to fill out.");
+  const requiredFields = ["reportType", "venue", "reporter", "kit", "component"];
+  if (selected.reportType === "Report Damage") {
+    requiredFields.push("damageType");
+  }
+
+  const missingFields = requiredFields.filter(field => !selected[field]);
+
+  if (missingFields.length > 0) {
+    showPopupMessage("Oo! You still have a few fields to fill out.");
     return false;
   }
+
+  const count = parseInt(document.getElementById("count-input").value || "0");
+  if (!count || count < 1) {
+    showPopupMessage("Oo! You still have a few fields to fill out.");
+    return false;
+  }
+
   return true;
 }
 
-
 document.getElementById("submit-btn").onclick = () => {
-  const isValid = validateFormFields();
-
-  if (!isValid) {
-    // Show warning (already handled in validateFormFields)
-    return;
-  }
+  if (!validateFormFields()) return;
 
   selected.count = parseInt(document.getElementById("count-input").value || "1");
 
@@ -244,7 +226,6 @@ document.getElementById("submit-btn").onclick = () => {
       console.error(err);
     });
 };
-
 
 window.onerror = function(message, source, lineno, colno, error) {
   console.error("⚠️ JavaScript Error", { message, source, lineno, colno, error });
