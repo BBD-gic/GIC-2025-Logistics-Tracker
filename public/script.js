@@ -208,7 +208,12 @@ function validateFormFields() {
 
 
 document.getElementById("submit-btn").onclick = () => {
-  if (!validateFormFields()) return;
+  const isValid = validateFormFields();
+
+  if (!isValid) {
+    // Show warning (already handled in validateFormFields)
+    return;
+  }
 
   selected.count = parseInt(document.getElementById("count-input").value || "1");
 
@@ -239,6 +244,7 @@ document.getElementById("submit-btn").onclick = () => {
       console.error(err);
     });
 };
+
 
 window.onerror = function(message, source, lineno, colno, error) {
   console.error("⚠️ JavaScript Error", { message, source, lineno, colno, error });
