@@ -140,6 +140,13 @@ button.selected {
   transform: translateY(-1px);
 }
 
+#submit-btn.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+  background-color: #999;
+  color: #eee;
+}
+
 /* Responsive */
 @media (max-width: 480px) {
   button {
