@@ -64,15 +64,7 @@ function renderButtons(stepKey, values, key, nextStep) {
         nextStep();
       }
       
-      // Always check if final step reached
-      const required = ["reportType", "venue", "reporter", "kit", "component"];
-      if (selected.reportType === "Report Damage") {
-        required.push("damageType");
-      }
-      
-      if (required.every(k => selected[k])) {
-        showCountAndSubmit();
-      }
+      checkAndShowSubmit();
     };
 
     section.appendChild(btn);
