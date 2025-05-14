@@ -32,26 +32,27 @@ header {
   background: var(--header-dark);
   color: white;
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 12px 24px; /* Balanced spacing */
+  align-items: center;
+  padding: 10px 40px;
   font-family: 'Cascadia Code', monospace;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   z-index: 10;
 }
 
 header img {
-  width: 45px;
-  height: 45px;
+  width: 40px;
+  height: 40px;
   object-fit: contain;
 }
 
 header h1 {
-  font-size: 19px;
-  font-weight: 600;
-  flex: 1;
-  text-align: right;
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0;
+  white-space: nowrap;
 }
+
 
 main {
   width: 100%;
