@@ -27,10 +27,13 @@ function renderButtons(stepKey, values, key, nextStep) {
     }
   });
 
-  // Hide count and submit on changing earlier steps
-  document.getElementById("step-count").classList.add("hidden");
-  document.getElementById("submit-btn").classList.add("hidden");
+  // ✅ Always hide count and submit explicitly
+  const countSection = document.getElementById("step-count");
+  const submitButton = document.getElementById("submit-btn");
+  if (countSection) countSection.classList.add("hidden");
+  if (submitButton) submitButton.classList.add("hidden");
 
+  // Clear previous buttons
   section.querySelectorAll("button").forEach(btn => btn.remove());
 
   values.forEach(val => {
@@ -47,6 +50,7 @@ function renderButtons(stepKey, values, key, nextStep) {
 
   section.classList.remove("hidden");
 
+  // Smooth scroll into view
   setTimeout(() => {
     const yOffset = -80;
     const y = section.getBoundingClientRect().top + window.pageYOffset + yOffset;
