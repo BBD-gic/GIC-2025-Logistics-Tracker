@@ -1,4 +1,3 @@
-
 let selected = {};
 
 const stepOrder = {
@@ -27,10 +26,10 @@ function renderButtons(stepKey, values, key, nextStep) {
       if (sec) sec.classList.add("hidden");
     }
   });
-  
-  // 👇 Add this just after the loop to always hide count & submit button
-  document.getElementById("step-count")?.classList.add("hidden");
-  document.getElementById("submit-btn")?.classList.add("hidden");
+
+  // Hide count and submit on changing earlier steps
+  document.getElementById("step-count").classList.add("hidden");
+  document.getElementById("submit-btn").classList.add("hidden");
 
   section.querySelectorAll("button").forEach(btn => btn.remove());
 
@@ -47,13 +46,12 @@ function renderButtons(stepKey, values, key, nextStep) {
   });
 
   section.classList.remove("hidden");
-  
+
   setTimeout(() => {
-    const yOffset = -80; // adjust based on header height
+    const yOffset = -80;
     const y = section.getBoundingClientRect().top + window.pageYOffset + yOffset;
     window.scrollTo({ top: y, behavior: "smooth" });
-  }, 100); // small delay to ensure DOM updates
-
+  }, 100);
 }
 
 function loadStaticOptions() {
@@ -228,5 +226,4 @@ window.onerror = function(message, source, lineno, colno, error) {
 
 console.log("✅ script.js loaded");
 
-window.onload = loadStaticOptions();
-
+window.onload = loadStaticOptions;
