@@ -63,14 +63,12 @@ function renderButtons(stepKey, values, key, nextStep) {
       }
       
       // Always check if final step reached
-      const required =
-        selected.reportType === "Report Damage"
-          ? ["reportType", "venue", "reporter", "kit", "component", "damageType"]
-          : ["reportType", "venue", "reporter", "kit", "component"];
+      const required = ["reportType", "venue", "reporter", "kit", "component"];
+      if (selected.reportType === "Report Damage") {
+        required.push("damageType");
+      }
       
-      const isFinalStep = required.every(k => selected[k]);
-      
-      if (isFinalStep) {
+      if (required.every(k => selected[k])) {
         showCountAndSubmit();
       }
     };
