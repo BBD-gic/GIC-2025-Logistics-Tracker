@@ -35,8 +35,8 @@ header {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 20px 24px;
+  gap: 8px; /* reduced gap */
+  padding: 10px 16px; /* reduced padding */
   font-family: 'Cascadia Code', monospace;
   border-bottom-left-radius: 12px;
   border-bottom-right-radius: 12px;
@@ -44,8 +44,13 @@ header {
 }
 
 header img {
-  width: 60px;
-  height: 60px;
+  width: 40px; /* was 60px */
+  height: 40px;
+}
+
+header h1 {
+  font-size: 16px; /* adjust for compact layout */
+  margin: 0;
 }
 
 main {
@@ -160,5 +165,19 @@ button.selected {
   #submit-btn {
     width: 100%;
   }
+
+  header {
+    padding: 8px 12px;
+  }
+  
+  header img {
+    width: 36px;
+    height: 36px;
+  }
+  
+  header h1 {
+    font-size: 15px;
+  }
+
 }
 
