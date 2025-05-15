@@ -16,20 +16,19 @@ const stepOrder = {
 function hideSubmit() {
   document.getElementById("count-input").value = 1;
   document.getElementById("step-count").classList.add("hidden");
-  document.getElementById("step-submit").classList.add("hidden");
 }
 
 function showCountAndSubmit() {
   document.getElementById("count-input").value = 1;
   document.getElementById("step-count").classList.remove("hidden");
-  document.getElementById("step-submit").classList.remove("hidden");
 
   setTimeout(() => {
     const yOffset = -100;
-    const y = document.getElementById("step-submit").getBoundingClientRect().top + window.pageYOffset + yOffset;
+    const y = document.getElementById("step-count").getBoundingClientRect().top + window.pageYOffset + yOffset;
     window.scrollTo({ top: y, behavior: "smooth" });
   }, 100);
 }
+
 
 function checkAndShowSubmit() {
   const required = ["reportType", "venue", "reporter", "kit", "component"];
