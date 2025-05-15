@@ -46,18 +46,14 @@ function renderButtons(stepKey, values, key, nextStep) {
   const section = document.getElementById("step-" + stepKey);
   const currentStepNum = stepOrder[stepKey];
 
-  let foundCurrent = false;
   Object.entries(stepOrder).forEach(([step, num]) => {
-    if (step === key) {
-      foundCurrent = true;
-      return;
-    }
-    if (foundCurrent || num > currentStepNum) {
+    if (num > currentStepNum) {
       delete selected[step];
       const sec = document.getElementById("step-" + step);
       if (sec) sec.classList.add("hidden");
     }
   });
+
 
   hideFinalStep();
   section.querySelectorAll("button").forEach(btn => btn.remove());
