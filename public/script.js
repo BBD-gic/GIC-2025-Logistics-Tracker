@@ -176,6 +176,7 @@ function loadComponents() {
     });
 }
 
+
 function loadDamages(damageOptions = []) {
   const options = damageOptions && damageOptions.length ? [...new Set(damageOptions)] : ["Other"];
   renderButtons("damageType", options, "damageType", checkAndShowSubmit);
