@@ -16,19 +16,20 @@ const stepOrder = {
 function hideSubmit() {
   document.getElementById("count-input").value = 1;
   document.getElementById("step-count").classList.add("hidden");
+  document.getElementById("step-submit").classList.add("hidden");
 }
 
 function showCountAndSubmit() {
   document.getElementById("count-input").value = 1;
   document.getElementById("step-count").classList.remove("hidden");
+  document.getElementById("step-submit").classList.remove("hidden");
 
   setTimeout(() => {
     const yOffset = -100;
-    const y = document.getElementById("step-count").getBoundingClientRect().top + window.pageYOffset + yOffset;
+    const y = document.getElementById("step-submit").getBoundingClientRect().top + window.pageYOffset + yOffset;
     window.scrollTo({ top: y, behavior: "smooth" });
   }, 100);
 }
-
 
 function checkAndShowSubmit() {
   const required = ["reportType", "venue", "reporter", "kit", "component"];
@@ -77,7 +78,8 @@ function renderButtons(stepKey, values, key, nextStep) {
         nextStep();
       }
 
-      checkAndShowSubmit();
+      checkAndShowSubmit(); // Only run if this is the final step
+
     };
 
     section.appendChild(btn);
@@ -158,7 +160,7 @@ function loadKits() {
 
 function loadComponents() {
   if (!selected.venue || !selected.kit) return alert("Please select venue and kit first.");
-  fetch(/form-options?venue=${encodeURIComponent(selected.venue)}&kit=${encodeURIComponent(selected.kit)})
+  fetch(`/form-options?venue=${encodeURIComponent(selected.venue)}&kit=${encodeURIComponent(selected.kit)}`)
     .then(res => res.json())
     .then(data => {
       renderButtons("component", data.components, "component", () => {
@@ -174,7 +176,6 @@ function loadComponents() {
       showPopupMessage("❌ Failed to load components. Please try again.");
     });
 }
-
 
 function loadDamages(damageOptions = []) {
   const options = damageOptions && damageOptions.length ? [...new Set(damageOptions)] : ["Other"];
@@ -247,22 +248,9 @@ document.getElementById("submit-btn").onclick = () => {
       showPopupMessage("✅ Submitted successfully!");
       console.log("Response:", data);
 
-      // Reset selected object without losing reference
-      Object.keys(selected).forEach(k => delete selected[k]);
-      console.log("Reset selected object:", selected);
+      showPopupMessage("✅ Submitted successfully!");
+      setTimeout(() => location.reload(), 1000);
 
-      // Hide all sections and clear buttons
-      document.querySelectorAll("main section").forEach(sec => {
-        sec.classList.add("hidden");
-        sec.querySelectorAll("button").forEach(b => {
-          b.classList.remove("selected");
-          b.remove();
-        });
-      });
-
-      document.getElementById("count-input").value = 1;
-      hideSubmit();
-      loadStaticOptions();
     })
     .catch(err => {
       showPopupMessage("❌ Submission failed: " + err.message);
@@ -273,7 +261,7 @@ document.getElementById("submit-btn").onclick = () => {
     });
 };
 
-window.onerror = function(message, source, lineno, colno, error) {
+window.onerror = function (message, source, lineno, colno, error) {
   console.error("⚠️ JavaScript Error", { message, source, lineno, colno, error });
 };
 
