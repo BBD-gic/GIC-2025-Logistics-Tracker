@@ -9,20 +9,24 @@ const stepOrder = {
   kit: 4,
   component: 5,
   damageType: 6,
-  final: 7
+  count: 7,
+  submit: 8
 };
 
-function hideFinalStep() {
-  document.getElementById("step-final").classList.add("hidden");
+function hideSubmit() {
+  document.getElementById("count-input").value = 1;
+  document.getElementById("step-count").classList.add("hidden");
+  document.getElementById("step-submit").classList.add("hidden");
 }
 
-function showFinalStep() {
+function showCountAndSubmit() {
   document.getElementById("count-input").value = 1;
-  document.getElementById("step-final").classList.remove("hidden");
+  document.getElementById("step-count").classList.remove("hidden");
+  document.getElementById("step-submit").classList.remove("hidden");
 
   setTimeout(() => {
     const yOffset = -100;
-    const y = document.getElementById("step-final").getBoundingClientRect().top + window.pageYOffset + yOffset;
+    const y = document.getElementById("step-submit").getBoundingClientRect().top + window.pageYOffset + yOffset;
     window.scrollTo({ top: y, behavior: "smooth" });
   }, 100);
 }
@@ -36,9 +40,7 @@ function checkAndShowSubmit() {
   const allFilled = required.every(k => selected[k]);
 
   if (allFilled) {
-    showFinalStep();
-  } else {
-    hideFinalStep();
+    showCountAndSubmit();
   }
 }
 
@@ -46,16 +48,21 @@ function renderButtons(stepKey, values, key, nextStep) {
   const section = document.getElementById("step-" + stepKey);
   const currentStepNum = stepOrder[stepKey];
 
+  let foundCurrent = false;
   Object.entries(stepOrder).forEach(([step, num]) => {
-    if (num > currentStepNum) {
+    if (step === key) {
+      foundCurrent = true;
+      return;
+    }
+    if (foundCurrent || num > currentStepNum) {
       delete selected[step];
       const sec = document.getElementById("step-" + step);
       if (sec) sec.classList.add("hidden");
     }
   });
 
+  hideSubmit();
 
-  hideFinalStep();
   section.querySelectorAll("button").forEach(btn => btn.remove());
 
   values.forEach(val => {
@@ -67,8 +74,12 @@ function renderButtons(stepKey, values, key, nextStep) {
       Array.from(section.querySelectorAll("button")).forEach(b => b.classList.remove("selected"));
       btn.classList.add("selected");
 
-      if (nextStep) nextStep();
-      checkAndShowSubmit();
+      if (nextStep) {
+        nextStep();
+      }
+
+      checkAndShowSubmit(); // Only run if this is the final step
+
     };
 
     section.appendChild(btn);
@@ -86,7 +97,9 @@ function renderButtons(stepKey, values, key, nextStep) {
 function loadStaticOptions() {
   fetch("/static-options")
     .then(res => res.json())
-    .then(data => renderButtons("reportType", data.reportTypes, "reportType", loadVenues))
+    .then(data => {
+      renderButtons("reportType", data.reportTypes, "reportType", loadVenues);
+    })
     .catch(error => {
       console.error("Failed to load static options:", error);
       showPopupMessage("❌ Failed to load options. Please refresh the page.");
@@ -96,7 +109,9 @@ function loadStaticOptions() {
 function loadVenues() {
   fetch("/form-options")
     .then(res => res.json())
-    .then(data => renderButtons("venue", data.venues, "venue", loadReporters))
+    .then(data => {
+      renderButtons("venue", data.venues, "venue", loadReporters);
+    })
     .catch(error => {
       console.error("Failed to load venues:", error);
       showPopupMessage("❌ Failed to load venues. Please try again.");
@@ -130,9 +145,11 @@ function loadKits() {
     .then(res => res.json())
     .then(data => {
       let kits = data.kits || [];
-      if (["Report Damage", "Report Missing"].includes(selected.reportType)) {
-        kits = kits.filter(k => !["Everyday Materials", "Slotties"].includes(k));
+
+      if (selected.reportType === "Report Damage" || selected.reportType === "Report Missing") {
+        kits = kits.filter(k => k !== "Everyday Materials" && k !== "Slotties");
       }
+
       renderButtons("kit", kits, "kit", loadComponents);
     })
     .catch(error => {
@@ -161,13 +178,15 @@ function loadComponents() {
 }
 
 function loadDamages(damageOptions = []) {
-  const options = damageOptions?.length ? [...new Set(damageOptions)] : ["Other"];
+  const options = damageOptions && damageOptions.length ? [...new Set(damageOptions)] : ["Other"];
   renderButtons("damageType", options, "damageType", checkAndShowSubmit);
 }
 
 function validateFormFields() {
   const requiredFields = ["reportType", "venue", "reporter", "kit", "component"];
-  if (selected.reportType === "Report Damage") requiredFields.push("damageType");
+  if (selected.reportType === "Report Damage") {
+    requiredFields.push("damageType");
+  }
 
   const missing = requiredFields.filter(field => !selected[field]);
   const count = parseInt(document.getElementById("count-input").value || "0");
@@ -216,6 +235,7 @@ document.getElementById("submit-btn").onclick = () => {
   if (!validateFormFields()) return;
 
   selected.count = parseInt(document.getElementById("count-input").value || "1");
+
   document.getElementById("submit-btn").disabled = true;
 
   fetch("/submit", {
@@ -226,19 +246,11 @@ document.getElementById("submit-btn").onclick = () => {
     .then(res => res.json())
     .then(data => {
       showPopupMessage("✅ Submitted successfully!");
-      Object.keys(selected).forEach(k => delete selected[k]);
+      console.log("Response:", data);
 
-      document.querySelectorAll("main section").forEach(sec => {
-        sec.classList.add("hidden");
-        sec.querySelectorAll("button").forEach(b => {
-          b.classList.remove("selected");
-          b.remove();
-        });
-      });
+      showPopupMessage("✅ Submitted successfully!");
+      setTimeout(() => location.reload(), 1000);
 
-      document.getElementById("count-input").value = 1;
-      hideFinalStep();
-      loadStaticOptions();
     })
     .catch(err => {
       showPopupMessage("❌ Submission failed: " + err.message);
@@ -249,32 +261,10 @@ document.getElementById("submit-btn").onclick = () => {
     });
 };
 
-function updateStepNumbers() {
-  let count = 1;
-  document.querySelectorAll("main section").forEach(sec => {
-    if (!sec.classList.contains("hidden")) {
-      const numSpan = sec.querySelector(".step-number");
-      if (numSpan) numSpan.innerText = count++ + ". ";
-    }
-  });
-}
-
-const observer = new MutationObserver(updateStepNumbers);
-observer.observe(document.querySelector("main"), {
-  childList: false,
-  subtree: true,
-  attributes: true,
-  attributeFilter: ['class']
-});
-
-window.onload = () => {
-  loadStaticOptions();
-  updateStepNumbers();
-};
-
 window.onerror = function (message, source, lineno, colno, error) {
   console.error("⚠️ JavaScript Error", { message, source, lineno, colno, error });
 };
 
 console.log("✅ script.js loaded");
 
+window.onload = loadStaticOptions;
