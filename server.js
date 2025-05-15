@@ -142,30 +142,42 @@ app.get("/form-options", async (req, res) => {
 });
 
 app.get("/static-options", async (req, res) => {
-  if (allRecords.length === 0) await fetchAllRecords();
+  try {
+    if (allRecords.length === 0) {
+      console.log("🔄 No cached records. Fetching from Airtable...");
+      await fetchAllRecords();
+    } else {
+      console.log("✅ Using cached records");
+    }
 
-  const reporterByVenue = {};
+    const reporterByVenue = {};
 
-  allRecords.forEach(record => {
-    const venue = (record["Venue Name"] || "").trim();
-    const raw = record.Reporter || "";
-    if (!venue) return;
-    raw.split(",").map(r => r.trim()).forEach(name => {
-      if (!name) return;
-      if (!reporterByVenue[venue]) reporterByVenue[venue] = new Set();
-      reporterByVenue[venue].add(name);
+    allRecords.forEach(record => {
+      const venue = (record["Venue Name"] || "").trim();
+      const raw = record.Reporter || "";
+      if (!venue) return;
+      raw.split(",").map(r => r.trim()).forEach(name => {
+        if (!name) return;
+        if (!reporterByVenue[venue]) reporterByVenue[venue] = new Set();
+        reporterByVenue[venue].add(name);
+      });
     });
-  });
 
-  Object.keys(reporterByVenue).forEach(venue => {
-    reporterByVenue[venue] = Array.from(reporterByVenue[venue]);
-  });
+    Object.keys(reporterByVenue).forEach(venue => {
+      reporterByVenue[venue] = Array.from(reporterByVenue[venue]);
+    });
 
-  res.json({
-    reportTypes: ["Report Missing", "Report Damage", "Issue Product"],
-    reporters: reporterByVenue
-  });
+    console.log("✅ Returning static options");
+    res.json({
+      reportTypes: ["Report Missing", "Report Damage", "Issue Product"],
+      reporters: reporterByVenue
+    });
+  } catch (err) {
+    console.error("❌ Static options error:", err.message);
+    res.status(500).json({ error: "Static options error" });
+  }
 });
+
 
 app.post("/submit", async (req, res) => {
   try {
