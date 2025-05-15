@@ -159,7 +159,7 @@ function loadKits() {
 
 function loadComponents() {
   if (!selected.venue || !selected.kit) return alert("Please select venue and kit first.");
-  fetch(`/form-options?venue=${encodeURIComponent(selected.venue)}&kit=${encodeURIComponent(selected.kit)}`)
+  fetch(/form-options?venue=${encodeURIComponent(selected.venue)}&kit=${encodeURIComponent(selected.kit)})
     .then(res => res.json())
     .then(data => {
       renderButtons("component", data.components, "component", () => {
