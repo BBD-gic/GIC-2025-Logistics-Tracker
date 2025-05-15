@@ -107,6 +107,11 @@ button.selected {
   font-weight: 600;
 }
 
+#step-final {
+  text-align: center;
+  margin-top: 32px;
+}
+
 #count-input {
   width: 40%;
   padding: 12px;
@@ -135,13 +140,9 @@ button.selected {
 }
 
 #submit-btn:hover {
-  background-color: var(--bg1); /* pale sand */
+  background-color: var(--bg1);
   color: #1a1a1a;
   transform: translateY(-1px);
-}
-
-#step-submit {
-  text-align: center;
 }
 
 /* Responsive */
