@@ -183,7 +183,10 @@ app.post("/submit", async (req, res) => {
   try {
     const { reporter, reportType, venue, kit, component, damageType, count } = req.body;
 
+    console.log("📥 Incoming body from frontend:", JSON.stringify(req.body, null, 2));
+
     if (!reporter || !reportType || !venue || !kit || !component || !count) {
+      console.warn("⚠️ Missing fields in submission");
       return res.status(400).json({ error: "Missing required fields" });
     }
 
@@ -194,21 +197,30 @@ app.post("/submit", async (req, res) => {
       "Kit": recordIdCache.Kit[kit] ? [recordIdCache.Kit[kit]] : [kit],
       "Component": recordIdCache.Component[component] ? [recordIdCache.Component[component]] : [component],
       ...(reportType === "Report Damage" && damageType && {
-        "Type of Damage": Array.isArray(damageType) ? damageType : [damageType]
+        "Type of Damage": Array.isArray(damageType)
+          ? damageType.map(d => d.trim())
+          : [damageType.trim()]
       }),
       "QTY": parseInt(count)
     };
 
+    console.log("📤 Record being sent to Airtable:", JSON.stringify(record, null, 2));
+
     airtableBase("Damages").create([{ fields: record }], (err, records) => {
       if (err) {
+        console.error("❌ Airtable error:", err.message);
         return res.status(500).json({ error: err.message });
       }
+
+      console.log("✅ Airtable submission success. Record ID:", records[0].id);
       res.json({ success: true, id: records[0].id });
     });
   } catch (err) {
+    console.error("❌ Server error:", err.message);
     res.status(500).json({ error: "Server error" });
   }
 });
+
 
 // ✅ Start
 app.listen(process.env.PORT || 3000, async () => {
