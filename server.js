@@ -9,21 +9,18 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ✅ Serve static frontend from public/
 app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// ✅ Airtable setup
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
 const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
 const AIRTABLE_URL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Stock%20In`;
 const headers = { Authorization: `Bearer ${AIRTABLE_API_KEY}` };
 const airtableBase = new Airtable({ apiKey: AIRTABLE_API_KEY }).base(AIRTABLE_BASE_ID);
 
-// ✅ Cache
 let allRecords = [];
 const recordIdCache = {
   Venue: {},
@@ -33,8 +30,11 @@ const recordIdCache = {
   Component: {}
 };
 
+// ✅ Updated normalize to handle strings, arrays, and undefined
 function normalize(str) {
-  return (str || "").toLowerCase().trim();
+  if (typeof str === "string") return str.toLowerCase().trim();
+  if (Array.isArray(str)) return str.join(", ").toLowerCase().trim();
+  return "";
 }
 
 async function fetchAllRecords() {
@@ -107,7 +107,45 @@ async function cacheRecordIds(tableName, labelField = "Name", cacheKey = tableNa
   }
 }
 
-// 🔄 Routes
+// ✅ New: Cache components with compound key
+async function cacheComponentRecords() {
+  const all = [];
+  let offset = null;
+
+  try {
+    do {
+      const params = new URLSearchParams({ view: "Grid view" });
+      if (offset) params.append("offset", offset);
+
+      const { data } = await axios.get(
+        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Stock%20In?${params}`,
+        { headers }
+      );
+
+      all.push(...data.records);
+      offset = data.offset;
+    } while (offset);
+
+    recordIdCache.Component = {};
+
+    all.forEach(r => {
+      const f = r.fields;
+      const component = f["Component Name"];
+      const kit = f["Kit Name"];
+      const venue = f["Venue Name"];
+
+      if (!component || !kit || !venue) return;
+
+      const key = `${normalize(component)}|${normalize(kit)}|${normalize(venue)}`;
+      recordIdCache.Component[key] = r.id;
+    });
+
+    console.log(`✅ Cached ${Object.keys(recordIdCache.Component).length} components`);
+  } catch (err) {
+    console.error("❌ Failed to cache components:", err.message);
+  }
+}
+
 app.get("/form-options", async (req, res) => {
   try {
     if (allRecords.length === 0) await fetchAllRecords();
@@ -178,7 +216,6 @@ app.get("/static-options", async (req, res) => {
   }
 });
 
-
 app.post("/submit", async (req, res) => {
   try {
     const { reporter, reportType, venue, kit, component, damageType, count } = req.body;
@@ -190,12 +227,16 @@ app.post("/submit", async (req, res) => {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
+    const componentKey = `${normalize(component)}|${normalize(kit)}|${normalize(venue)}`;
+
     const record = {
       "Reporter": recordIdCache.Reporter[reporter] ? [recordIdCache.Reporter[reporter]] : [reporter],
       "Report Type": [reportType],
       "Venue": recordIdCache.Venue[venue] ? [recordIdCache.Venue[venue]] : [venue],
       "Kit": recordIdCache.Kit[kit] ? [recordIdCache.Kit[kit]] : [kit],
-      "Component": recordIdCache.Component[component] ? [recordIdCache.Component[component]] : [component],
+      "Component": recordIdCache.Component[componentKey]
+        ? [recordIdCache.Component[componentKey]]
+        : [component],
       ...(reportType === "Report Damage" && damageType && {
         "Type of Damage": Array.isArray(damageType)
           ? damageType.map(d => d.trim())
@@ -221,13 +262,11 @@ app.post("/submit", async (req, res) => {
   }
 });
 
-
-// ✅ Start
 app.listen(process.env.PORT || 3000, async () => {
   console.log("🚀 Server running...");
   await fetchAllRecords();
   await cacheRecordIds("Venues", "Name", "Venue");
   await cacheRecordIds("Kits", "Name", "Kit");
-  await cacheRecordIds("Stock In", "Component Name", "Component");
+  await cacheComponentRecords(); // ✅ uses new version
   await cacheRecordIds("Program Mgmt Team", "Name", "Reporter");
 });
